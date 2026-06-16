@@ -15,7 +15,7 @@ jobs:
     name: Build Linux (.deb, AppImage, tarball)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install build dependencies
         run: |
@@ -45,7 +45,7 @@ jobs:
       - name: Build AppImage
         run: bash packaging/build-appimage.sh dist
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: linux
           path: dist/*
@@ -55,7 +55,7 @@ jobs:
     name: Build Windows (.exe, .zip)
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
 
@@ -82,7 +82,7 @@ jobs:
           Pop-Location
           Move-Item packaging/windows/rust-viewer-pro-setup-x86_64.exe dist/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: windows
           path: dist/*
@@ -93,7 +93,7 @@ jobs:
     needs: [linux, windows]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: dist
           merge-multiple: true
@@ -103,7 +103,7 @@ jobs:
         run: sha256sum * > SHA256SUMS
 
       - name: Publish release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: dist/*
           generate_release_notes: true

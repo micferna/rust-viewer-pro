@@ -14,7 +14,7 @@ jobs:
     name: Lint & test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install Linux GUI build dependencies
         run: |
@@ -43,7 +43,7 @@ jobs:
     name: Supply-chain audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: cargo-deny (licenses, advisories, sources)
         uses: EmbarkStudios/cargo-deny-action@v2

@@ -6,7 +6,7 @@
 
 [![CI](https://github.com/micferna/rust-viewer-pro/actions/workflows/ci.yml/badge.svg)](https://github.com/micferna/rust-viewer-pro/actions/workflows/ci.yml)
 [![Release](https://github.com/micferna/rust-viewer-pro/actions/workflows/release.yml/badge.svg)](https://github.com/micferna/rust-viewer-pro/actions/workflows/release.yml)
-[![Latest release](https://img.shields.io/github/v/release/micferna/rust-viewer-pro?sort=semver)](https://github.com/micferna/rust-viewer-pro/releases/latest)
+[![Download](https://img.shields.io/badge/download-latest%20release-success)](https://github.com/micferna/rust-viewer-pro/releases/latest)
 [![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue)](#license)
 
 </div>

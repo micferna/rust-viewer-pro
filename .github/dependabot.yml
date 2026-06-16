@@ -3,13 +3,21 @@ updates:
   - package-ecosystem: cargo
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
     open-pull-requests-limit: 5
     groups:
       cargo:
         patterns: ["*"]
+    ignore:
+      # Major bumps of the GUI/decoder stack (egui, eframe, image, self_update…)
+      # need code changes and must be adopted deliberately, not auto-merged.
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]

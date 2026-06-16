@@ -6,6 +6,18 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-06-16
+
+### Changed
+
+- CI/release: update GitHub Actions (`checkout` v6, `upload-artifact` v7,
+  `download-artifact` v8, `action-gh-release` v3).
+- Dependabot: group cargo and github-actions updates, skip cargo major bumps,
+  monthly cadence.
+- README: replace the version badge (shields token-pool failures) with a stable
+  download badge.
+- Bump `log` to 0.4.32.
+
 ## [0.1.1] - 2026-06-16
 
 ### Security
@@ -32,6 +44,7 @@ All notable changes to this project are documented here. The format is based on
 - Packaging: Debian `.deb`, Linux AppImage, Windows installer + portable `.zip`.
 - CI: format, clippy, tests and `cargo-deny` supply-chain checks.
 
-[Unreleased]: https://github.com/micferna/rust-viewer-pro/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/micferna/rust-viewer-pro/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/micferna/rust-viewer-pro/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/micferna/rust-viewer-pro/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/micferna/rust-viewer-pro/releases/tag/v0.1.0

@@ -1,0 +1,54 @@
+# cargo-deny configuration — supply-chain & license policy.
+# Run: cargo deny check
+
+[advisories]
+# Fail on any known security *vulnerability*. The entries below are
+# "unmaintained" advisories only (not vulnerabilities), pulled transitively
+# with no upgrade available. Documented and reviewed:
+ignore = [
+    # `paste`: unmaintained. Only reachable via the wgpu/metal backend, which we
+    # do NOT compile (eframe uses the `glow` backend). Never built.
+    "RUSTSEC-2024-0436",
+    # `number_prefix`: unmaintained. Pulled by indicatif (progress bars) via
+    # self_update. No vulnerability; no safe upgrade published.
+    "RUSTSEC-2025-0119",
+]
+
+[licenses]
+# Only permissive, distribution-friendly licenses are allowed.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "MPL-2.0",
+    "Unicode-DFS-2016",
+    "Unicode-3.0",
+    "BSL-1.0",
+    "CC0-1.0",
+]
+confidence-threshold = 0.8
+
+# Font and CA-bundle licenses, granted only to the specific crates that carry
+# them — both are freely redistributable.
+[[licenses.exceptions]]
+name = "epaint" # bundled default fonts (Ubuntu, Noto Emoji, Hack)
+allow = ["OFL-1.1", "LicenseRef-UFL-1.0"]
+
+[[licenses.exceptions]]
+name = "webpki-roots" # Mozilla CA certificate bundle (used for TLS)
+allow = ["CDLA-Permissive-2.0"]
+
+[bans]
+# Duplicate versions only warn (transitive deps often pull several); fail CI
+# only on advisories/licenses, not on graph hygiene.
+multiple-versions = "warn"
+wildcards = "allow"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

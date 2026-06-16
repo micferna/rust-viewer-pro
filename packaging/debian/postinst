@@ -1,0 +1,37 @@
+#!/bin/sh
+# postinst — refresh MIME caches and, if requested, set the default handler.
+set -e
+
+. /usr/share/debconf/confmodule
+
+DESKTOP=rust-viewer-pro.desktop
+MIMES="image/png image/jpeg image/bmp image/webp image/gif"
+DEFAULTS=/usr/share/applications/mimeapps.list
+
+set_default_handler() {
+    touch "$DEFAULTS"
+    grep -q '^\[Default Applications\]' "$DEFAULTS" \
+        || printf '\n[Default Applications]\n' >> "$DEFAULTS"
+    for m in $MIMES; do
+        if grep -q "^$m=" "$DEFAULTS"; then
+            sed -i "s|^$m=.*|$m=$DESKTOP|" "$DEFAULTS"
+        else
+            sed -i "\|^\[Default Applications\]|a $m=$DESKTOP" "$DEFAULTS"
+        fi
+    done
+}
+
+if [ "$1" = "configure" ]; then
+    # Always make the app discoverable under "Open with".
+    if command -v update-desktop-database >/dev/null 2>&1; then
+        update-desktop-database -q /usr/share/applications || true
+    fi
+
+    db_get rust-viewer-pro/set-default || true
+    if [ "$RET" = "true" ]; then
+        set_default_handler
+    fi
+fi
+
+#DEBHELPER#
+exit 0

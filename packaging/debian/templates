@@ -1,0 +1,7 @@
+Template: rust-viewer-pro/set-default
+Type: boolean
+Default: false
+Description: Set Rust Viewer Pro as the default image viewer?
+ This associates PNG, JPEG, BMP, WebP and GIF files with Rust Viewer Pro so
+ they open with it by default. You can change this later in your desktop's
+ default-applications settings.

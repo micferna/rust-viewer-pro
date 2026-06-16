@@ -1,0 +1,10 @@
+#!/bin/sh
+# debconf "config" script — asks the question before installation.
+set -e
+
+. /usr/share/debconf/confmodule
+
+db_input high rust-viewer-pro/set-default || true
+db_go || true
+
+exit 0

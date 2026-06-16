@@ -1,0 +1,82 @@
+[package]
+name = "rust-viewer-pro"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.74"
+authors = ["micferna"]
+description = "Fast, cross-platform image viewer written in Rust (egui)."
+readme = "README.md"
+repository = "https://github.com/micferna/rust-viewer-pro"
+homepage = "https://github.com/micferna/rust-viewer-pro"
+license = "MIT OR Apache-2.0"
+keywords = ["image", "viewer", "gui", "egui", "graphics"]
+categories = ["multimedia::images", "gui"]
+
+[[bin]]
+name = "rust-viewer-pro"
+path = "src/main.rs"
+
+[dependencies]
+eframe = { version = "0.27", default-features = false, features = [
+    "default_fonts",
+    "glow",
+    "wayland",
+    "x11",
+] }
+egui = "0.27"
+image = { version = "0.25", default-features = false, features = [
+    "png",
+    "jpeg",
+    "bmp",
+    "webp",
+    "gif",
+] }
+clap = { version = "4", features = ["derive"] }
+walkdir = "2"
+log = "0.4"
+env_logger = "0.11"
+self_update = { version = "0.41", default-features = false, features = [
+    "rustls",
+    "archive-tar",
+    "archive-zip",
+    "compression-flate2",
+    "compression-zip-deflate",
+] }
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "decode"
+harness = false
+
+# --- Build profiles -----------------------------------------------------------
+# Optimised, small, fast release binary.
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
+
+# Faster local iteration while keeping deps optimised.
+[profile.dev.package."*"]
+opt-level = 3
+
+# --- Debian package (cargo-deb) ----------------------------------------------
+[package.metadata.deb]
+maintainer = "micferna"
+copyright = "2026, micferna"
+license-file = ["LICENSE-MIT", "0"]
+extended-description = "Fast, cross-platform image viewer written in Rust using egui/eframe."
+section = "graphics"
+priority = "optional"
+depends = "$auto, debconf (>= 0.5) | debconf-2.0"
+# Maintainer scripts: debconf prompt + default-handler registration.
+maintainer-scripts = "packaging/debian/"
+assets = [
+    ["target/release/rust-viewer-pro", "usr/bin/", "755"],
+    ["assets/rust-viewer-pro.desktop", "usr/share/applications/", "644"],
+    ["assets/icon-256.png", "usr/share/icons/hicolor/256x256/apps/rust-viewer-pro.png", "644"],
+    ["README.md", "usr/share/doc/rust-viewer-pro/README.md", "644"],
+]

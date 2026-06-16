@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Rust Viewer Pro
+Comment=Fast, cross-platform image viewer
+Exec=rust-viewer-pro %F
+Icon=rust-viewer-pro
+Terminal=false
+Categories=Graphics;Viewer;
+MimeType=image/png;image/jpeg;image/bmp;image/webp;image/gif;

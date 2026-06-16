@@ -1,0 +1,23 @@
+#!/bin/sh
+# postrm — drop the default-handler entries we added and refresh caches.
+set -e
+
+DESKTOP=rust-viewer-pro.desktop
+DEFAULTS=/usr/share/applications/mimeapps.list
+
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+    if [ -f "$DEFAULTS" ]; then
+        sed -i "\|=$DESKTOP\$|d" "$DEFAULTS"
+    fi
+    if command -v update-desktop-database >/dev/null 2>&1; then
+        update-desktop-database -q /usr/share/applications || true
+    fi
+fi
+
+if [ "$1" = "purge" ] && [ -e /usr/share/debconf/confmodule ]; then
+    . /usr/share/debconf/confmodule
+    db_purge || true
+fi
+
+#DEBHELPER#
+exit 0

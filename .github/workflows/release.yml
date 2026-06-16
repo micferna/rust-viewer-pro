@@ -1,0 +1,110 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  linux:
+    name: Build Linux (.deb, AppImage, tarball)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libxkbcommon-dev libwayland-dev \
+            libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
+            libxi-dev libgl1-mesa-dev file desktop-file-utils
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build release
+        run: cargo build --release --locked
+
+      - name: Package tarball (for self-update)
+        run: |
+          mkdir -p dist
+          tar -czf dist/rust-viewer-pro-x86_64-unknown-linux-gnu.tar.gz \
+            -C target/release rust-viewer-pro
+
+      - name: Build .deb
+        run: |
+          cargo install cargo-deb --locked
+          cargo deb --no-build --output dist/
+
+      - name: Build AppImage
+        run: bash packaging/build-appimage.sh dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: dist/*
+          if-no-files-found: error
+
+  windows:
+    name: Build Windows (.exe, .zip)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build release
+        run: cargo build --release --locked
+
+      - name: Package portable (zip + exe)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item target/release/rust-viewer-pro.exe dist/rust-viewer-pro.exe
+          Compress-Archive -Path target/release/rust-viewer-pro.exe `
+            -DestinationPath dist/rust-viewer-pro-x86_64-pc-windows-msvc.zip
+
+      - name: Build installer (NSIS, with optional file association)
+        shell: pwsh
+        run: |
+          $ver = $env:GITHUB_REF_NAME -replace '^v', ''
+          choco install nsis --no-progress -y
+          $makensis = "C:\Program Files (x86)\NSIS\makensis.exe"
+          Push-Location packaging/windows
+          & $makensis "/DVERSION=$ver" installer.nsi
+          if ($LASTEXITCODE -ne 0) { throw "makensis failed" }
+          Pop-Location
+          Move-Item packaging/windows/rust-viewer-pro-setup-x86_64.exe dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist/*
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub Release
+    needs: [linux, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Generate checksums
+        working-directory: dist
+        run: sha256sum * > SHA256SUMS
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
+          fail_on_unmatched_files: true

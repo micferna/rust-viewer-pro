@@ -17,13 +17,13 @@ name = "rust-viewer-pro"
 path = "src/main.rs"
 
 [dependencies]
-eframe = { version = "0.27", default-features = false, features = [
+eframe = { version = "0.34", default-features = false, features = [
     "default_fonts",
     "glow",
     "wayland",
     "x11",
 ] }
-egui = "0.27"
+egui = "0.34"
 image = { version = "0.25", default-features = false, features = [
     "png",
     "jpeg",
@@ -35,7 +35,7 @@ clap = { version = "4", features = ["derive"] }
 walkdir = "2"
 log = "0.4"
 env_logger = "0.11"
-self_update = { version = "0.41", default-features = false, features = [
+self_update = { version = "0.44", default-features = false, features = [
     "rustls",
     "archive-tar",
     "archive-zip",
@@ -44,7 +44,7 @@ self_update = { version = "0.41", default-features = false, features = [
 ] }
 
 [dev-dependencies]
-criterion = { version = "0.5", features = ["html_reports"] }
+criterion = { version = "0.8", features = ["html_reports"] }
 
 [[bench]]
 name = "decode"

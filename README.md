@@ -106,6 +106,19 @@ cargo audit                         # RustSec vulnerabilities
 
 See [PERFORMANCE.md](PERFORMANCE.md) for the optimisation notes and benchmarks.
 
+## Security
+
+This app opens untrusted images, so the decoders are hardened:
+
+- **Pure-Rust, memory-safe decoders** — no `libpng`/`libjpeg`/`libwebp`, so the
+  buffer-overflow RCE class (e.g. CVE-2023-4863) does not apply. `unsafe` is
+  forbidden in our own code.
+- **No SVG, no EXIF parsing** — two large attack surfaces avoided.
+- **Decompression-bomb limits** and **panic isolation** on a worker thread: a
+  booby-trapped image is rejected with an error, never code execution or a crash.
+
+Full threat model and reporting instructions: [SECURITY.md](SECURITY.md).
+
 ## License
 
 Dual-licensed under either of

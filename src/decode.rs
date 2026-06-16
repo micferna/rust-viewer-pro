@@ -4,11 +4,19 @@
 //! A dedicated worker thread receives [`Request`]s and returns [`Decoded`]
 //! results over channels; the UI polls them each frame.
 
-use std::path::PathBuf;
+use std::panic::AssertUnwindSafe;
+use std::path::{Path, PathBuf};
 use std::sync::mpsc::{self, Receiver, Sender};
 
 use egui::ColorImage;
 use image::imageops::FilterType;
+use image::{ImageReader, Limits};
+
+/// Hard caps applied while decoding untrusted images, to defuse decompression
+/// bombs (a tiny file declaring enormous dimensions). Generous enough for real
+/// photos and panoramas, small enough to never exhaust memory.
+const MAX_DIMENSION: u32 = 30_000;
+const MAX_ALLOC_BYTES: u64 = 1024 * 1024 * 1024; // 1 GiB per allocation
 
 /// A decoded image ready to be uploaded as a GPU texture.
 pub struct Decoded {
@@ -64,7 +72,16 @@ fn worker(
     max_side: u32,
 ) {
     while let Ok(req) = req_rx.recv() {
-        let result = decode(&req.path, max_side);
+        // A malformed/hostile image can make a decoder panic. Catch it so one
+        // bad file shows an error instead of taking down the whole app, and the
+        // worker keeps serving the next requests.
+        let result = std::panic::catch_unwind(AssertUnwindSafe(|| decode(&req.path, max_side)))
+            .unwrap_or_else(|_| {
+                Err(format!(
+                    "{}: image rejected (decoder error)",
+                    req.path.display()
+                ))
+            });
         if res_tx
             .send(Decoded {
                 index: req.index,
@@ -79,8 +96,23 @@ fn worker(
 }
 
 /// Decode and downscale a single image to an egui [`ColorImage`].
-pub fn decode(path: &std::path::Path, max_side: u32) -> Result<ColorImage, String> {
-    let img = image::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
+///
+/// The format is detected from the file's *content*, not its extension, and
+/// decoding runs under strict size/allocation limits.
+pub fn decode(path: &Path, max_side: u32) -> Result<ColorImage, String> {
+    let err = |e: &dyn std::fmt::Display| format!("{}: {e}", path.display());
+
+    let mut limits = Limits::default();
+    limits.max_image_width = Some(MAX_DIMENSION);
+    limits.max_image_height = Some(MAX_DIMENSION);
+    limits.max_alloc = Some(MAX_ALLOC_BYTES);
+
+    let mut reader = ImageReader::open(path)
+        .map_err(|e| err(&e))?
+        .with_guessed_format()
+        .map_err(|e| err(&e))?;
+    reader.limits(limits);
+    let img = reader.decode().map_err(|e| err(&e))?;
 
     let (w, h) = (img.width(), img.height());
     let img = if w.max(h) > max_side {
@@ -92,4 +124,47 @@ pub fn decode(path: &std::path::Path, max_side: u32) -> Result<ColorImage, Strin
     let rgba = img.to_rgba8();
     let size = [rgba.width() as usize, rgba.height() as usize];
     Ok(ColorImage::from_rgba_unmultiplied(size, rgba.as_raw()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn temp_path(name: &str) -> PathBuf {
+        std::env::temp_dir().join(format!("rvp-test-{name}"))
+    }
+
+    #[test]
+    fn decodes_a_valid_image_and_downscales() {
+        let path = temp_path("valid.png");
+        image::RgbaImage::from_pixel(200, 100, image::Rgba([10, 20, 30, 255]))
+            .save(&path)
+            .unwrap();
+
+        // No downscale needed.
+        let full = decode(&path, 4096).unwrap();
+        assert_eq!(full.size, [200, 100]);
+
+        // Downscaled to fit within 50 px on the longest edge.
+        let small = decode(&path, 50).unwrap();
+        assert!(small.size[0] <= 50 && small.size[1] <= 50);
+
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn rejects_garbage_without_panicking() {
+        let path = temp_path("garbage.png");
+        std::fs::write(&path, b"this is definitely not an image").unwrap();
+
+        // Must return an error, not panic or hang.
+        assert!(decode(&path, 4096).is_err());
+
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn rejects_missing_file() {
+        assert!(decode(Path::new("/nonexistent/rvp/none.png"), 4096).is_err());
+    }
 }

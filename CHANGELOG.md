@@ -6,6 +6,17 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-06-16
+
+### Security
+
+- Harden image decoding against hostile/booby-trapped files:
+  - decompression-bomb limits (≤ 30000 px per side, ≤ 1 GiB per allocation);
+  - panic isolation on the decode thread (`catch_unwind`) so a malformed image
+    shows an error instead of crashing the app;
+  - content-based format detection instead of trusting the file extension.
+- Add `SECURITY.md` documenting the threat model and reporting process.
+
 ## [0.1.0] - 2026-06-16
 
 ### Added
@@ -21,5 +32,6 @@ All notable changes to this project are documented here. The format is based on
 - Packaging: Debian `.deb`, Linux AppImage, Windows installer + portable `.zip`.
 - CI: format, clippy, tests and `cargo-deny` supply-chain checks.
 
-[Unreleased]: https://github.com/micferna/rust-viewer-pro/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/micferna/rust-viewer-pro/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/micferna/rust-viewer-pro/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/micferna/rust-viewer-pro/releases/tag/v0.1.0

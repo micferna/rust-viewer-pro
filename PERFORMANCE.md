@@ -30,7 +30,7 @@ Release profile (`Cargo.toml`):
 opt-level = 3        # full optimisation
 lto = "fat"          # cross-crate inlining
 codegen-units = 1    # best codegen at the cost of build time
-panic = "abort"      # smaller binary, no unwinding tables
+panic = "unwind"     # required to catch decoder panics on hostile images
 strip = true         # strip symbols
 ```
 
